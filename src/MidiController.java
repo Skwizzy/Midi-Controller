@@ -1,3 +1,5 @@
+import java.applet.Applet;
+
 import javax.sound.midi.MidiUnavailableException;
 
 import org.jfugue.*;
@@ -6,8 +8,9 @@ import org.jfugue.*;
 //import javax.sound.midi.MidiDevice;
 //import javax.sound.midi.MidiSystem;
 
-public class MidiController implements ParserListener{
+public class MidiController extends Applet implements ParserListener{
 		
+	private static final int MAX_KEYS = 88;
 	//The virtual keyboard mappings & on/off switches
 	private static Piano Piano_map;
 	
@@ -67,10 +70,19 @@ public class MidiController implements ParserListener{
 		{
 			//This is the only way I can actually get the Key Listener to quit the program.
 			//Not really sure why it won't exit unless I have this here.
-			//if(isrunning)
-			//	System.out.println("I am running!");
-			//else
-			//	System.out.println("I am not supposed to be alive!");				
+			if(Virtual_keys.getStatus())
+				System.out.println("I am running!");
+			else
+				System.out.println("I am not supposed to be alive!");
+			
+			for(int i = 0; i < MAX_KEYS; i++)
+			{
+				if(Piano_map.getSwitch(i) == false)
+				{
+					Virtual_keys.toggleOff(i);
+					System.out.println("Note is done!");
+				}
+			}
 		}
 		
 		//Mr. Clean
@@ -93,7 +105,7 @@ public class MidiController implements ParserListener{
 		
 		//Show that the key has been pressed
 		Piano_map.flipSwitch(array_value);
-		Virtual_keys.toggleKeyPress(array_value);
+		Virtual_keys.toggleOn(array_value);
 		
 		if(Piano_map.getSwitch(array_value) == false)
 		{

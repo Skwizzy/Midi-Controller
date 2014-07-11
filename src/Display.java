@@ -26,7 +26,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 	private boolean isrunning = true;
 	private int index = 0;
 	
-	private JToggleButton C_through_E[] = new JToggleButton[MAX_KEYS];	
+	private JPanel C_through_E[] = new JPanel[MAX_KEYS];	
 	
 	public Display()
 	{
@@ -82,7 +82,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		//When generate = 0, that means its the first key in the group. This key is also a white key.
 	    if(generate == 0)
 		{
-	    	C_through_E[index] = new JToggleButton();
+	    	C_through_E[index] = new JPanel();
 	    	
 	    	//Check to see if this is the first key on the keyboard and set its location to 0,0 if it is
 	    	if(index == 0)
@@ -104,7 +104,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 	    //If generate % 2 == 1, we want to insert a black key next
 		else if(generate % 2 == 1 && index < MAX_KEYS)
 		{
-			C_through_E[index] = new JToggleButton();
+			C_through_E[index] = new JPanel();
 			
 			//Get the position of the previous black key and add it with the width to determine the new key's position. 
 			//The 4 was just for optimizing the position.
@@ -118,7 +118,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 	    //This key must be a white key and we get the previous white key's position to determine the new key's position. 
 		else if (index < MAX_KEYS)
 		{
-			C_through_E[index] = new JToggleButton();
+			C_through_E[index] = new JPanel();
 			C_through_E[index].setLocation(C_through_E[index - 2].getX() + WHITE_WIDTH - 1, 0);
 			C_through_E[index].setSize(WHITE_KEYS);
 			C_through_E[index].setBackground(Color.WHITE);
@@ -131,10 +131,25 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		return isrunning;
 	}
 	
-	public void toggleKeyPress(int i)
+	public void toggleOn(int i)
 	{
 		//Presses down the button associated to the key pressed
-		C_through_E[i].doClick();
+		//C_through_E[i].doClick();
+		C_through_E[i].setBackground(Color.CYAN);
+	}
+	
+	public void toggleOff(int i)
+	{
+		//Presses down the button associated to the key pressed
+		//C_through_E[i].doClick();
+		if(C_through_E[i].getWidth() == WHITE_WIDTH)
+		{
+			C_through_E[i].setBackground(Color.WHITE);
+		}
+		else
+		{
+			C_through_E[i].setBackground(Color.BLACK);
+		}
 	}
 	
 	public void redrawKey(int index)
