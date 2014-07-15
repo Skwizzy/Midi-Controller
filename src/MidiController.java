@@ -35,10 +35,7 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 	
 	public MidiController() throws MidiUnavailableException
 	{
-	     //Initialize built in sequencer for reading midi files.
-		 player = MidiSystem.getSequencer();
-		 player.getTransmitter().setReceiver(this);
-		 
+				 
 		//Prints out available Midi Devices. For Debugging.
 		//*************************************************
 		
@@ -53,8 +50,11 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 		    {
 		        System.out.println(dev);
 		    }
+		    
+		  //Initialize built in sequencer for reading midi files.
+			 player = MidiSystem.getSequencer();
+			 player.getTransmitter().setReceiver(this);
 		}
-		
 		
 		try 
 		{			
@@ -106,7 +106,7 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 			e.printStackTrace();
 		}
 		
-		while(Virtual_keys.getStatus())
+		while(true)
 		{
 			
 			for(int i = 0; i < MAX_KEYS; i++)
@@ -119,15 +119,15 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 		}
 		
 		//Mr. Clean
-		keyboard.stopListening();
-		player.stop();
-		player.close();
-		keyboard.close();
-		keyboard = null;
-		Piano_map = null;
-		Controller = null;
-	    Virtual_keys = null;
-		System.exit(0);
+		//keyboard.stopListening();
+		//player.stop();
+		//player.close();
+		//keyboard.close();
+		//keyboard = null;
+		//Piano_map = null;
+		//Controller = null;
+	    //Virtual_keys = null;
+		//System.exit(0);
 	    
 	}
 	
