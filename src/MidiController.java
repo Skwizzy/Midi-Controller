@@ -1,15 +1,29 @@
 import java.applet.Applet;
+import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 import javax.sound.midi.MidiUnavailableException;
 
 import org.jfugue.*;
+import javax.sound.midi.InvalidMidiDataException;
 
 //For Debugging.
-//import javax.sound.midi.MidiDevice;
-//import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.Sequencer;
+import javax.sound.midi.ShortMessage;
 
-public class MidiController extends Applet implements ParserListener{
+public class MidiController extends Applet implements ParserListener, Receiver{
 		
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final int MAX_KEYS = 88;
 	//The virtual keyboard mappings & on/off switches
 	private static Piano Piano_map;
@@ -17,12 +31,17 @@ public class MidiController extends Applet implements ParserListener{
 	private static Display Virtual_keys;
 	
 	private static DeviceThatWillTransmitMidi keyboard;
+	private static Sequencer player; 
 	
-	public MidiController()
+	public MidiController() throws MidiUnavailableException
 	{
+	     //Initialize built in sequencer for reading midi files.
+		 player = MidiSystem.getSequencer();
+		 player.getTransmitter().setReceiver(this);
+		 
 		//Prints out available Midi Devices. For Debugging.
 		//*************************************************
-		/*
+		
 		MidiDevice.Info[] devices = MidiSystem.getMidiDeviceInfo();
 		if (devices.length == 0) 
 		{
@@ -35,7 +54,7 @@ public class MidiController extends Applet implements ParserListener{
 		        System.out.println(dev);
 		    }
 		}
-		*/
+		
 		
 		try 
 		{			
@@ -44,6 +63,7 @@ public class MidiController extends Applet implements ParserListener{
 			
 			//Create the Virtual Keyboard
 			Virtual_keys = new Display();
+			
 			
 			//Connect to Midi device
 			keyboard = new DeviceThatWillTransmitMidi();
@@ -66,27 +86,42 @@ public class MidiController extends Applet implements ParserListener{
 		//Initialize Midi device and attach the event listener.
 		MidiController Controller = new MidiController();
 		
+		//This needs to be a menu option. Hard Coded for now
+		File midiFile = Virtual_keys.getFile();
+		
+		try
+		{
+			  //Prepare file for sequencer to play.
+			  InputStream ios = new BufferedInputStream(new FileInputStream(midiFile));
+			  player.open();
+			  player.setSequence(ios);	  
+			  player.start();			  
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (InvalidMidiDataException e)
+		{
+			e.printStackTrace();
+		}
+		
 		while(Virtual_keys.getStatus())
 		{
-			//This is the only way I can actually get the Key Listener to quit the program.
-			//Not really sure why it won't exit unless I have this here.
-			if(Virtual_keys.getStatus())
-				System.out.println("I am running!");
-			else
-				System.out.println("I am not supposed to be alive!");
 			
 			for(int i = 0; i < MAX_KEYS; i++)
 			{
 				if(Piano_map.getSwitch(i) == false)
 				{
 					Virtual_keys.toggleOff(i);
-					System.out.println("Note is done!");
 				}
 			}
 		}
 		
 		//Mr. Clean
 		keyboard.stopListening();
+		player.stop();
+		player.close();
 		keyboard.close();
 		keyboard = null;
 		Piano_map = null;
@@ -105,7 +140,7 @@ public class MidiController extends Applet implements ParserListener{
 		
 		//Show that the key has been pressed
 		Piano_map.flipSwitch(array_value);
-		Virtual_keys.toggleOn(array_value);
+		Virtual_keys.toggleOn_Right(array_value);
 		
 		if(Piano_map.getSwitch(array_value) == false)
 		{
@@ -116,6 +151,56 @@ public class MidiController extends Applet implements ParserListener{
 		System.out.println("Note Pressed: " + Piano_map.getKey(array_value));
 		System.out.println("Note Held: " + Piano_map.getSwitch(array_value));
 	}
+	
+	@Override
+	public void send(MidiMessage arg0, long arg1) {
+		// TODO Auto-generated method stub
+		byte[] message = arg0.getMessage();
+		
+		/*
+		System.out.println(arg0.getStatus());
+		for(int i = 0; i < tests.length; i++)
+		{
+			
+			System.out.println(tests[i]);
+		}
+		*/
+		
+		if(arg0.getStatus() == 144)
+		{
+				int array_value = message[1] - 21;
+				
+				//Show that the key has been pressed
+				Piano_map.flipSwitch(array_value);
+				Virtual_keys.toggleOn_Right(array_value);
+				
+				if(Piano_map.getSwitch(array_value) == false)
+				{
+					Virtual_keys.repaint();
+					Virtual_keys.redrawKey(array_value);
+				}
+				
+				System.out.println("Note Pressed: " + Piano_map.getKey(array_value));
+				System.out.println("Note Held: " + Piano_map.getSwitch(array_value));
+		}
+		else if (arg0.getStatus() == 145)
+		{
+			int array_value = message[1] - 21;
+			
+			//Show that the key has been pressed
+			Piano_map.flipSwitch(array_value);
+			Virtual_keys.toggleOn_Left(array_value);
+			
+			if(Piano_map.getSwitch(array_value) == false)
+			{
+				Virtual_keys.repaint();
+				Virtual_keys.redrawKey(array_value);
+			}
+			
+			System.out.println("Note Pressed: " + Piano_map.getKey(array_value));
+			System.out.println("Note Held: " + Piano_map.getSwitch(array_value));
+		}
+	}	
 
 //Mandatory bullshit so the compiler doesn't bitch at me
 
@@ -196,6 +281,23 @@ public class MidiController extends Applet implements ParserListener{
 	public void voiceEvent(Voice arg0) {
 		// TODO Auto-generated method stub
 		//System.out.println("14");
-	}		
+	}
+
+	public void controlChange(ShortMessage arg0) {
+		// TODO Auto-generated method stub
+		System.out.println(arg0.getMessage());
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+		keyboard.stopListening();
+		keyboard.close();
+		player.stop();
+		player.close();
+		keyboard = null;
+		Piano_map = null;
+	    Virtual_keys = null;
+	}	
 
 }

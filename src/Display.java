@@ -4,6 +4,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -27,7 +28,8 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 	private int index = 0;
 	
 	private JPanel C_through_E[] = new JPanel[MAX_KEYS];	
-	
+	private JFileChooser fc = new JFileChooser();
+
 	public Display()
 	{
 		JFrame window = new JFrame("Midi Keyboard Interpreter");
@@ -131,7 +133,14 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		return isrunning;
 	}
 	
-	public void toggleOn(int i)
+	public void toggleOn_Left(int i)
+	{
+		//Presses down the button associated to the key pressed
+		//C_through_E[i].doClick();
+		C_through_E[i].setBackground(Color.MAGENTA);
+	}
+	
+	public void toggleOn_Right(int i)
 	{
 		//Presses down the button associated to the key pressed
 		//C_through_E[i].doClick();
@@ -152,6 +161,21 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		}
 	}
 	
+	public File getFile()
+	{
+
+		int retVal = fc.showOpenDialog(this);;
+		
+		if(retVal == JFileChooser.APPROVE_OPTION)
+		{
+			return fc.getSelectedFile();
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
 	public void redrawKey(int index)
 	{
 		C_through_E[index].repaint();
@@ -169,7 +193,7 @@ public class Display extends JFrame implements KeyListener, MouseListener {
 		}
 		
 	}
-
+	
 	@Override
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
