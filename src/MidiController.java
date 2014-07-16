@@ -60,13 +60,14 @@ public class MidiController implements ParserListener, Receiver{
 		{
 			  InputStream ios = new BufferedInputStream(new FileInputStream(midiFile));
 			  
-			  
+			  //Stop the player if its playing and reset the keys
 			  if(player != null && player.isRunning())
 			  {
 				  player.stop();
 				  resetKeys();
 			  }
 			  
+			  //Close the player if its playing and reset the keys
 			  if(player != null && player.isOpen())
 			  {
 				  player.close();
@@ -76,10 +77,6 @@ public class MidiController implements ParserListener, Receiver{
 			  //Initialize built in sequencer for reading midi files.
 			  player = MidiSystem.getSequencer();
 			  player.getTransmitter().setReceiver(this);
-			 
-			  
-			  //Prepare file for sequencer to play.
-			 
 			  player.open();
 			  player.setSequence(ios);	  
 			  player.start();			  
