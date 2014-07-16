@@ -102,7 +102,7 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 	
 	public static void updateTempo()
 	{
-		tempo.setText(Float.toString(song_tempo));
+		tempo.setText(String.format("%.2f", song_tempo));
 		tempo.repaint();
 		
 		Controller.setTempo(song_tempo);
@@ -123,7 +123,7 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 			
 			//Get the tempo of the song and update the tempo control
 			song_tempo = Controller.getTempo();
-			tempo.setText(Float.toString(Controller.getTempo()));
+			tempo.setText(String.format("%.2f", song_tempo));
 			
 			//Enable tempo controls
 			up.setEnabled(true);
@@ -194,9 +194,10 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		tempo_panel = new JPanel();
 		up = new JButton(">");
 		down = new JButton("<");
-		tempo = new JTextField(Float.toString(song_tempo));
+		tempo = new JTextField(String.format("%.2f",song_tempo), 4);
 		
-		tempo.setSize(up.getWidth(), up.getHeight());
+		tempo.setSize(100, up.getHeight());
+		tempo.setHorizontalAlignment(JTextField.CENTER);
 		
 		up.addActionListener(this);
 		down.addActionListener(this);
@@ -213,7 +214,7 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		tempo_panel.add(down, BorderLayout.WEST);
 		tempo_panel.add(tempo, BorderLayout.CENTER);
 		tempo_panel.add(up, BorderLayout.EAST);
-		
+
 		return tempo_panel;
 	}
 	
