@@ -267,6 +267,11 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		else if(arg0.getActionCommand() == "Tempo_Change")
 		{
 			song_tempo = Float.parseFloat(tempo.getText());
+			
+			if(song_tempo < 0)
+			{
+				song_tempo = 0;
+			}
 			updateTempo();
 		}
 	}
