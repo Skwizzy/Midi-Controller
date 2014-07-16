@@ -22,7 +22,7 @@ import javax.swing.JLayeredPane;
 public class MidiController implements ParserListener, Receiver{
 
 	private final int MAX_KEYS = 88;
-	private int selected_device = 0;
+	private int selected_device = -1;
 	
 	//The virtual keyboard mappings & on/off switches
 	private Piano Piano_map;

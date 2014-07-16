@@ -224,6 +224,15 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		//Called when Open File is selected.
 		if(arg0.getActionCommand() == "Open File...")
 		{
+			if(Controller.getSelectedDevice() == -1)
+			{
+				JOptionPane.showMessageDialog(this,
+					    "You must select an audio device!",
+					    "No Device Detected",
+					    JOptionPane.ERROR_MESSAGE);
+				
+				setDevice();
+			}
 			try 
 			{				
 				openFile();			
@@ -257,12 +266,12 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		}
 		else if(arg0.getActionCommand() == "Tempo_Up")
 		{
-			song_tempo++;
+			song_tempo = song_tempo + 1.00f;
 			updateTempo();
 		}
 		else if(arg0.getActionCommand() == "Tempo_Down")
 		{
-			song_tempo--;
+			song_tempo = song_tempo - 1.00f;
 			updateTempo();
 		}
 		else if(arg0.getActionCommand() == "Tempo_Change")
