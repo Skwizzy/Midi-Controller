@@ -1,4 +1,3 @@
-import java.applet.Applet;
 import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -8,6 +7,7 @@ import java.io.InputStream;
 import javax.sound.midi.MidiUnavailableException;
 
 import org.jfugue.*;
+
 import javax.sound.midi.InvalidMidiDataException;
 
 //For Debugging.
@@ -17,82 +17,69 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
+import javax.swing.JLayeredPane;
 
-public class MidiController extends Applet implements ParserListener, Receiver{
-		
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private static final int MAX_KEYS = 88;
+@SuppressWarnings("serial")
+public class MidiController implements ParserListener, Receiver{
+
+	private final int MAX_KEYS = 88;
+	private int selected_device = 0;
+	
 	//The virtual keyboard mappings & on/off switches
-	private static Piano Piano_map;
+	private Piano Piano_map;
 	
-	private static Display Virtual_keys;
+	private Display Virtual_keys;
 	
-	private static DeviceThatWillTransmitMidi keyboard;
-	private static Sequencer player; 
+	private DeviceThatWillTransmitMidi keyboard;
+	private Sequencer player;
+	
+	private MidiDevice.Info[] devices;
+	
 	
 	public MidiController() throws MidiUnavailableException
 	{
 				 
-		//Prints out available Midi Devices. For Debugging.
-		//*************************************************
+		//Initialize key mappings & on/off switches
+		Piano_map = new Piano();
 		
-		MidiDevice.Info[] devices = MidiSystem.getMidiDeviceInfo();
-		if (devices.length == 0) 
-		{
-		    System.out.println("No MIDI devices found");
-		} 
-		else 
-		{
-		    for (MidiDevice.Info dev : devices) 
-		    {
-		        System.out.println(dev);
-		    }
-		    
-		  //Initialize built in sequencer for reading midi files.
-			 player = MidiSystem.getSequencer();
-			 player.getTransmitter().setReceiver(this);
-		}
+		//Create the Virtual Keyboard
+		Virtual_keys = new Display();
 		
-		try 
-		{			
-			//Initialize key mappings & on/off switches
-			Piano_map = new Piano();
-			
-			//Create the Virtual Keyboard
-			Virtual_keys = new Display();
-			
-			
-			//Connect to Midi device
-			keyboard = new DeviceThatWillTransmitMidi();
-			keyboard.addParserListener(this);
-			
-			//Start the event listening
-			keyboard.startListening();
-			
-		} 
-		catch (MidiUnavailableException e) 
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-		
+		devices = MidiSystem.getMidiDeviceInfo();
 	}
 	
-	public static void main(String args[]) throws MidiUnavailableException 
-	{		
-		//Initialize Midi device and attach the event listener.
-		MidiController Controller = new MidiController();
-		
-		//This needs to be a menu option. Hard Coded for now
-		File midiFile = Virtual_keys.getFile();
-		
+	public void startListening()
+	{
+		//Start the event listening
+		keyboard.startListening();
+	}
+	
+	public void startSequencer(File midiFile) throws MidiUnavailableException
+	{
 		try
 		{
-			  //Prepare file for sequencer to play.
 			  InputStream ios = new BufferedInputStream(new FileInputStream(midiFile));
+			  
+			  
+			  if(player != null && player.isRunning())
+			  {
+				  player.stop();
+				  resetKeys();
+			  }
+			  
+			  if(player != null && player.isOpen())
+			  {
+				  player.close();
+				  resetKeys();
+			  }
+			  
+			  //Initialize built in sequencer for reading midi files.
+			  player = MidiSystem.getSequencer();
+			  player.getTransmitter().setReceiver(this);
+			 
+			  
+			  //Prepare file for sequencer to play.
+			 
 			  player.open();
 			  player.setSequence(ios);	  
 			  player.start();			  
@@ -105,30 +92,51 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public void connectToDevice(int index) throws MidiUnavailableException
+	{
+		keyboard = new DeviceThatWillTransmitMidi(devices[index]);
+		keyboard.addParserListener(this);
 		
-		while(true)
+		selected_device = index;
+	}
+
+	public int getSelectedDevice()
+	{
+		return selected_device;
+	}
+	
+	public int getDeviceCount()
+	{
+		return devices.length;
+	}
+	
+	public String getDeviceName(int index)
+	{
+		return devices[index].getName();
+	}
+	
+	public void checkKeys()
+	{
+		for(int i = 0; i < MAX_KEYS; i++)
 		{
-			
-			for(int i = 0; i < MAX_KEYS; i++)
+			if(Piano_map.getSwitch(i) == false)
 			{
-				if(Piano_map.getSwitch(i) == false)
-				{
-					Virtual_keys.toggleOff(i);
-				}
+				Virtual_keys.toggleOff(i);
 			}
 		}
-		
-		//Mr. Clean
-		//keyboard.stopListening();
-		//player.stop();
-		//player.close();
-		//keyboard.close();
-		//keyboard = null;
-		//Piano_map = null;
-		//Controller = null;
-	    //Virtual_keys = null;
-		//System.exit(0);
-	    
+	}
+	
+	public JLayeredPane getVirtualKeys()
+	{
+		return Virtual_keys;
+	}
+	
+	public void resetKeys()
+	{
+		Virtual_keys = new Display();
+		Piano_map = new Piano();
 	}
 	
 	//Called when a Piano key is pressed. Called again when the note is released.
@@ -203,7 +211,6 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 	}	
 
 //Mandatory bullshit so the compiler doesn't bitch at me
-
 	@Override
 	public void channelPressureEvent(ChannelPressure arg0) {
 		// TODO Auto-generated method stub
@@ -299,5 +306,4 @@ public class MidiController extends Applet implements ParserListener, Receiver{
 		Piano_map = null;
 	    Virtual_keys = null;
 	}	
-
 }
