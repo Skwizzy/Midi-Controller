@@ -19,7 +19,6 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.swing.JLayeredPane;
 
-@SuppressWarnings("serial")
 public class MidiController implements ParserListener, Receiver{
 
 	private final int MAX_KEYS = 88;
@@ -89,6 +88,16 @@ public class MidiController implements ParserListener, Receiver{
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public void setTempo(float song_tempo)
+	{
+		player.setTempoInBPM(song_tempo);
+	}
+	
+	public float getTempo()
+	{
+		return player.getTempoInBPM();
 	}
 	
 	public void connectToDevice(int index) throws MidiUnavailableException

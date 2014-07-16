@@ -16,6 +16,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.MenuEvent;
@@ -31,7 +32,12 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 	private JList device_list;
 	private static MidiController Controller;
 	private JDialog options;
+	private JPanel tempo_panel;
+	private static JButton up;
+	private static JButton down;
+	private static JTextField tempo;
 	
+	private static float song_tempo = 120;
 	
 	public Menu() throws MidiUnavailableException
 	{
@@ -62,6 +68,7 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		//Add everything to the frame
 		window.add(Controller.getVirtualKeys());
 		window.setJMenuBar(menuBar);
+		window.add(TempoButton(), BorderLayout.PAGE_END);
 		window.setSize(1785, 300);
 		window.setVisible(true);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -93,6 +100,13 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 	    
 	}
 	
+	public static void updateTempo()
+	{
+		tempo.setText(Float.toString(song_tempo));
+		tempo.repaint();
+		
+		Controller.setTempo(song_tempo);
+	}
 	public static void openFile() throws MidiUnavailableException
 	{
 		JFileChooser fc = new JFileChooser();
@@ -103,13 +117,21 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		if(retVal == JFileChooser.APPROVE_OPTION)
 		{
 			//Reset the keyboard and start the sequencer
-			window.remove(Controller.getVirtualKeys());
-			
-			Controller.startSequencer(fc.getSelectedFile());
-			
+			window.remove(Controller.getVirtualKeys());		
+			Controller.startSequencer(fc.getSelectedFile());			
 			window.add(Controller.getVirtualKeys());
+			
+			//Get the tempo of the song and update the tempo control
+			song_tempo = Controller.getTempo();
+			tempo.setText(Float.toString(Controller.getTempo()));
+			
+			//Enable tempo controls
+			up.setEnabled(true);
+			down.setEnabled(true);
+			tempo.setEnabled(true);
+			
 			window.setVisible(false);
-			window.setVisible(true);
+			window.setVisible(true);	
 		}
 	}
 	
@@ -153,9 +175,11 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
         
         device_pane.add(listScrollPane, BorderLayout.CENTER);
         
+        //Configure select button
         select.setActionCommand("Select");
 		select.addActionListener(this);
 		
+		//Add things to new JDialog
 		options.setSize(220, 200);
 		options.add(device_pane, BorderLayout.CENTER);
 		options.add(select, BorderLayout.PAGE_END);	
@@ -165,9 +189,38 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 		
 	}
 	
+	public JPanel TempoButton()
+	{	
+		tempo_panel = new JPanel();
+		up = new JButton(">");
+		down = new JButton("<");
+		tempo = new JTextField(Float.toString(song_tempo));
+		
+		tempo.setSize(up.getWidth(), up.getHeight());
+		
+		up.addActionListener(this);
+		down.addActionListener(this);
+		tempo.addActionListener(this);
+		
+		up.setActionCommand("Tempo_Up");
+		down.setActionCommand("Tempo_Down");
+		tempo.setActionCommand("Tempo_Change");
+		
+		up.setEnabled(false);
+		down.setEnabled(false);
+		tempo.setEnabled(false);
+		
+		tempo_panel.add(down, BorderLayout.WEST);
+		tempo_panel.add(tempo, BorderLayout.CENTER);
+		tempo_panel.add(up, BorderLayout.EAST);
+		
+		return tempo_panel;
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 
+		//Called when Open File is selected.
 		if(arg0.getActionCommand() == "Open File...")
 		{
 			try 
@@ -183,6 +236,7 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 				e.printStackTrace();
 			}
 		}
+		//Called when an audio device is selected.
 		else if(arg0.getActionCommand() == "Select")
 		{
 			int index = device_list.getSelectedIndex();
@@ -199,6 +253,21 @@ public class Menu extends JFrame implements ActionListener, MenuListener{
 					    "Failed to Connect",
 					    JOptionPane.ERROR_MESSAGE);
 			}
+		}
+		else if(arg0.getActionCommand() == "Tempo_Up")
+		{
+			song_tempo++;
+			updateTempo();
+		}
+		else if(arg0.getActionCommand() == "Tempo_Down")
+		{
+			song_tempo--;
+			updateTempo();
+		}
+		else if(arg0.getActionCommand() == "Tempo_Change")
+		{
+			song_tempo = Float.parseFloat(tempo.getText());
+			updateTempo();
 		}
 	}
 
